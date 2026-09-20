@@ -1,0 +1,6 @@
+editor/node_modules/
+editor/dist/
+editor/assets/.aistudio/
+site/app/
+.netlify/
+*.log

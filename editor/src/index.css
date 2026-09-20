@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* The reading view keeps body copy comfortable without enlarging controls or badges. */
+.reading-view section p.text-sm {
+  font-size: 1rem;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.reading-view section li {
+  line-height: 1.7;
+}
+
+.reading-view section h2 {
+  line-height: 1.25;
+}
+
+.reading-view section h3,
+.reading-view section h4 {
+  line-height: 1.35;
+}
+
+.management-modal p,
+.management-modal small,
+.management-modal .text-\[11px\] {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+@media print {
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+
+  header, button, nav, .print\:hidden {
+    display: none !important;
+  }
+
+  section {
+    page-break-inside: avoid;
+    margin-bottom: 2rem !important;
+  }
+}

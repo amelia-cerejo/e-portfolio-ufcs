@@ -1,0 +1,3 @@
+[build]
+  command = "npm --prefix editor ci && npm --prefix editor run build"
+  publish = "site"
