@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PortfolioData, UFCD, EvidenceItem, FeaturedProject } from './types';
-import { loadPortfolioData, savePortfolioData } from './utils/storage';
-import { handleSaveProject } from './utils/eportfolioFile';
+import { loadPortfolioData, resetToDefaultData, savePortfolioData } from './utils/storage';
+import { handleNewProject, handleOpenProject, handleSaveProject, resetActiveFileHandle } from './utils/eportfolioFile';
 import { SidebarNav } from './components/SidebarNav';
 import { TopCompactBar } from './components/TopCompactBar';
 import { ManagementModal } from './components/ManagementModal';
@@ -22,6 +22,7 @@ import { UFCDManagerModal } from './components/UFCDManagerModal';
 import { SkillsManagerModal } from './components/SkillsManagerModal';
 import { InterestsManagerModal } from './components/InterestsManagerModal';
 import { SkillEvolutionManagerModal } from './components/SkillEvolutionManagerModal';
+import { PortfolioStartPanel } from './components/PortfolioStartPanel';
 
 export default function App() {
   const [data, setData] = useState<PortfolioData>(loadPortfolioData);
@@ -44,6 +45,31 @@ export default function App() {
   const [currentUfcdForEvidence, setCurrentUfcdForEvidence] = useState<string>('');
   const [editingUfcd, setEditingUfcd] = useState<UFCD | null>(null);
   const [editingProject, setEditingProject] = useState<FeaturedProject | null>(null);
+
+  const loadProjectIntoView = (newData: PortfolioData) => {
+    setData(newData);
+    setSelectedUfcdId(newData.ufcds[0]?.id || '');
+    setActiveSection('capa');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const createBlankPortfolio = () => {
+    if (!window.confirm('Criar um portefólio em branco? O projeto atual neste navegador será substituído. Guarda primeiro uma cópia .eportfolio se o quiseres conservar.')) return;
+    loadProjectIntoView(handleNewProject(data).data);
+    setIsEditMode(true);
+  };
+
+  const loadExamplePortfolio = () => {
+    if (!window.confirm('Abrir o exemplo da ação 26109? O projeto atual neste navegador será substituído. Guarda primeiro uma cópia .eportfolio se o quiseres conservar.')) return;
+    resetActiveFileHandle();
+    loadProjectIntoView(resetToDefaultData());
+  };
+
+  const openSavedPortfolio = async () => {
+    const result = await handleOpenProject();
+    if (result.success && result.data) loadProjectIntoView(result.data);
+    else if (result.error && result.error !== 'Operação cancelada pelo utilizador.') window.alert(result.error);
+  };
 
   // Auto-save whenever data changes
   useEffect(() => {
@@ -345,6 +371,7 @@ export default function App() {
           }}
           onOpenMobileMenu={() => setIsMobileNavOpen(true)}
           onOpenManagementModal={() => setIsManagementModalOpen(true)}
+          onOpenThemeModal={() => setActiveModal('theme')}
           hasUnsavedChanges={hasUnsavedChanges}
           onSave={async () => {
             await handleSaveProject(data);
@@ -357,6 +384,14 @@ export default function App() {
 
         {/* Main Section Container */}
         <main className={`max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16 w-full flex-1 ${!isEditMode || isPublicPreviewMode ? 'reading-view' : ''}`}>
+          {activeSection === 'capa' && !isPublicPreviewMode && (
+            <PortfolioStartPanel
+              onCreateBlank={createBlankPortfolio}
+              onLoadExample={loadExamplePortfolio}
+              onOpenProject={openSavedPortfolio}
+              onCustomize={() => setActiveModal('theme')}
+            />
+          )}
           
           {/* 1. Capa */}
           <SectionCover
@@ -449,18 +484,6 @@ export default function App() {
             onEdit={() => setActiveModal('edit_closure')}
           />
         </main>
-
-        {/* MODALS */}
-
-        {/* Gestão e Opções Modal */}
-        <ManagementModal
-          isOpen={isManagementModalOpen}
-          onClose={() => setIsManagementModalOpen(false)}
-          data={data}
-          onDataLoaded={setData}
-          onOpenShareModal={() => setActiveModal('share')}
-          onOpenThemeModal={() => setActiveModal('theme')}
-        />
 
       {/* Edit Cover Modal */}
       <EditModal
@@ -714,12 +737,7 @@ export default function App() {
         isOpen={isManagementModalOpen}
         onClose={() => setIsManagementModalOpen(false)}
         data={data}
-        onDataLoaded={(newData) => {
-          setData(newData);
-          setSelectedUfcdId(newData.ufcds[0]?.id || '');
-          setActiveSection('capa');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        onDataLoaded={loadProjectIntoView}
         onOpenThemeModal={() => setActiveModal('theme')}
         onEnterPublicPreview={() => {
           setIsEditMode(false);

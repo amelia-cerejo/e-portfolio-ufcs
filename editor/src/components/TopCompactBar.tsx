@@ -19,6 +19,7 @@ interface TopCompactBarProps {
   setIsEditMode: (mode: boolean) => void;
   onOpenMobileMenu: () => void;
   onOpenManagementModal: () => void;
+  onOpenThemeModal: () => void;
   hasUnsavedChanges?: boolean;
   onSave?: () => void;
   lastSavedTime?: string | null;
@@ -32,6 +33,7 @@ export const TopCompactBar: React.FC<TopCompactBarProps> = ({
   setIsEditMode,
   onOpenMobileMenu,
   onOpenManagementModal,
+  onOpenThemeModal,
   hasUnsavedChanges = false,
   onSave,
   lastSavedTime,
@@ -151,6 +153,15 @@ export const TopCompactBar: React.FC<TopCompactBarProps> = ({
               <span className="xs:hidden">Leitura</span>
             </>
           )}
+        </button>
+
+        <button
+          onClick={onOpenThemeModal}
+          className="p-1.5 sm:px-3 sm:py-1.5 rounded-xl text-xs font-bold bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-950/70 transition flex items-center gap-1.5 border border-violet-200 dark:border-violet-800"
+          title="Alterar cores e apresentação"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span className="hidden lg:inline">Cores</span>
         </button>
 
         {/* Gestão e Opções Modal Trigger Button */}
