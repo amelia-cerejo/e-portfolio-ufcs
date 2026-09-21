@@ -2,5 +2,6 @@ editor/node_modules/
 editor/dist/
 editor/assets/.aistudio/
 site/app/
+site/.vite/
 .netlify/
 *.log
