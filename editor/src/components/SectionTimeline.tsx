@@ -1,16 +1,20 @@
 import React from 'react';
-import { Clock, CheckCircle2, Circle, ArrowRight } from 'lucide-react';
+import { Clock, CheckCircle2, Circle, ArrowRight, Plus } from 'lucide-react';
 import { PortfolioData } from '../types';
 import { themePalettes } from '../utils/theme';
 
 interface SectionTimelineProps {
   data: PortfolioData;
   onSelectUFCD: (ufcdId: string) => void;
+  isEditMode: boolean;
+  onManageUfcds: () => void;
 }
 
 export const SectionTimeline: React.FC<SectionTimelineProps> = ({
   data,
   onSelectUFCD,
+  isEditMode,
+  onManageUfcds,
 }) => {
   const palette = themePalettes[data.theme.themeColor] || themePalettes.indigo;
 
@@ -28,18 +32,29 @@ export const SectionTimeline: React.FC<SectionTimelineProps> = ({
           <div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">4. O meu percurso</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              Visão geral e mapa de sequenciação das 8 UFCD da Ação {data.course.actionNumber}
+              Visão geral das {data.ufcds.length} UFCD{data.course.actionNumber ? ` da Ação ${data.course.actionNumber}` : ''}
             </p>
           </div>
         </div>
 
-        {/* Carga Horária Overview */}
-        <div className="bg-white dark:bg-slate-900 px-4 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {isEditMode && (
+            <button
+              type="button"
+              onClick={onManageUfcds}
+              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white ${palette.primaryBg}`}
+            >
+              <Plus className="h-4 w-4" />
+              Adicionar UFCD
+            </button>
+          )}
+          <div className="bg-white dark:bg-slate-900 px-4 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
           <div>
             <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Estrutura do Percurso Formativo</div>
             <div className="text-sm font-bold text-slate-900 dark:text-white">
               {data.ufcds.length} UFCD ({totalHours} Horas Totais)
             </div>
+          </div>
           </div>
         </div>
       </div>

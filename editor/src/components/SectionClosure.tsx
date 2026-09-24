@@ -84,7 +84,7 @@ export const SectionClosure: React.FC<SectionClosureProps> = ({
               {profile.studentName || 'Nome do Formando'}
             </h4>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              E-Portefólio de Formando — Ação {data.course.actionNumber} ({data.course.entityName})
+              E-Portefólio Digital{data.course.actionNumber ? ` — Ação ${data.course.actionNumber}` : ''}{data.course.entityName ? ` (${data.course.entityName})` : ''}
             </p>
           </div>
 

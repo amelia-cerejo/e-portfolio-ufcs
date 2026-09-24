@@ -18,11 +18,12 @@ import {
   Menu,
   Sparkles
 } from 'lucide-react';
-import { PortfolioData, UFCD } from '../types';
+import { PortfolioData, UFCD, PortfolioSectionId } from '../types';
 import { themePalettes } from '../utils/theme';
 
 interface SidebarNavProps {
   data: PortfolioData;
+  sections: PortfolioSectionId[];
   activeSection: string;
   setActiveSection: (sec: string) => void;
   selectedUfcdId: string;
@@ -36,6 +37,7 @@ interface SidebarNavProps {
 
 export const SidebarNav: React.FC<SidebarNavProps> = ({
   data,
+  sections,
   activeSection,
   setActiveSection,
   selectedUfcdId,
@@ -47,6 +49,8 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
   setIsCollapsed,
 }) => {
   const palette = themePalettes[data.theme.themeColor] || themePalettes.indigo;
+  const hasSection = (id: PortfolioSectionId) => sections.includes(id);
+  const sectionPosition = (id: PortfolioSectionId) => sections.indexOf(id);
 
   // Accordion open states
   const [percursoExpanded, setPercursoExpanded] = useState<boolean>(true);
@@ -74,16 +78,18 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
     icon: Icon,
     isSub = false,
   }: {
-    id: string;
+    id: PortfolioSectionId;
     label: string;
     icon: React.ElementType;
     isSub?: boolean;
   }) => {
     const isActive = activeSection === id;
+    if (!hasSection(id)) return null;
 
     return (
       <button
         onClick={() => scrollTo(id)}
+        style={{ order: sectionPosition(id) }}
         title={isCollapsed ? label : undefined}
         className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all relative group ${
           isSub ? 'pl-8 text-slate-600 dark:text-slate-400' : ''
@@ -131,10 +137,10 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
           )}
           {!isCollapsed && (
             <div className="truncate">
-              <h1 className="text-sm font-extrabold text-slate-900 dark:text-white leading-tight truncate">
+              <h1 className="text-base font-extrabold text-slate-900 dark:text-white leading-tight truncate">
                 E-Portefólio
               </h1>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                 {data.profile.studentName || 'Formando'}
               </p>
             </div>
@@ -154,7 +160,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
       <div className="h-px bg-slate-200 dark:border-slate-800 dark:bg-slate-800/80 my-1" />
 
       {/* Navigation Group */}
-      <nav className="space-y-1.5 flex-1">
+      <nav className="flex flex-1 flex-col gap-1.5">
         
         {/* 1. Início */}
         <NavButton id="capa" label="Início" icon={Home} />
@@ -163,7 +169,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
         <NavButton id="sobre" label="Sobre mim" icon={User} />
 
         {/* 3. Percurso */}
-        <div className="space-y-1">
+        {(hasSection('formacao') || hasSection('percurso') || hasSection('ufcds')) && <div className="space-y-1" style={{ order: Math.min(...(['formacao', 'percurso', 'ufcds'] as PortfolioSectionId[]).filter(hasSection).map(sectionPosition)) }}>
           <div className="flex items-center justify-between">
             <button
               onClick={() => {
@@ -189,7 +195,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
           {/* Sub-items for Percurso */}
           {(!isCollapsed && percursoExpanded) && (
             <div className="pl-3 space-y-1 border-l-2 border-slate-200 dark:border-slate-800 ml-5 my-1">
-              <button
+              {hasSection('formacao') && <button
                 onClick={() => scrollTo('formacao')}
                 className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
                   activeSection === 'formacao'
@@ -198,9 +204,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
                 }`}
               >
                 A minha formação
-              </button>
+              </button>}
 
-              <button
+              {hasSection('percurso') && <button
                 onClick={() => scrollTo('percurso')}
                 className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
                   activeSection === 'percurso'
@@ -209,16 +215,17 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
                 }`}
               >
                 O meu percurso
-              </button>
+              </button>}
+              {hasSection('ufcds') && <button onClick={() => scrollTo('ufcds')} className="w-full rounded-lg px-2.5 py-1.5 text-left text-xs font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">Páginas das UFCD</button>}
             </div>
           )}
-        </div>
+        </div>}
 
         {/* 4. Trabalhos */}
         <NavButton id="trabalhos" label="Trabalhos" icon={FolderKanban} />
 
         {/* 5. Reflexão */}
-        <div className="space-y-1">
+        {(hasSection('evolucao') || hasSection('reflexao-final') || hasSection('encerramento')) && <div className="space-y-1" style={{ order: Math.min(...(['evolucao', 'reflexao-final', 'encerramento'] as PortfolioSectionId[]).filter(hasSection).map(sectionPosition)) }}>
           <button
             onClick={() => {
               if (isCollapsed) setIsCollapsed(false);
@@ -241,7 +248,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
 
           {(!isCollapsed && reflexaoExpanded) && (
             <div className="pl-3 space-y-1 border-l-2 border-slate-200 dark:border-slate-800 ml-5 my-1">
-              <button
+              {hasSection('evolucao') && <button
                 onClick={() => scrollTo('evolucao')}
                 className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
                   activeSection === 'evolucao'
@@ -250,9 +257,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
                 }`}
               >
                 Evolução das competências
-              </button>
+              </button>}
 
-              <button
+              {hasSection('reflexao-final') && <button
                 onClick={() => scrollTo('reflexao-final')}
                 className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
                   activeSection === 'reflexao-final'
@@ -261,9 +268,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
                 }`}
               >
                 Reflexão final
-              </button>
+              </button>}
 
-              <button
+              {hasSection('encerramento') && <button
                 onClick={() => scrollTo('encerramento')}
                 className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
                   activeSection === 'encerramento'
@@ -272,10 +279,11 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
                 }`}
               >
                 Encerramento
-              </button>
+              </button>}
             </div>
           )}
-        </div>
+        </div>}
+        <NavButton id="certificacao" label="Certificação" icon={Award} />
       </nav>
 
       <div className="h-px bg-slate-200 dark:bg-slate-800 my-2" />
@@ -295,14 +303,15 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
         </button>
       </div>
 
-      {/* Collapse Desktop Toggle */}
+      {/* Hide Desktop Sidebar */}
       <div className="hidden lg:flex items-center justify-end pt-2">
         <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
+          onClick={() => setIsCollapsed(true)}
           className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-          title={isCollapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
+          title="Ocultar painel lateral"
+          aria-label="Ocultar painel lateral"
         >
-          {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          <ChevronLeft className="w-4 h-4" />
         </button>
       </div>
     </div>
@@ -312,12 +321,24 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
     <>
       {/* Desktop Sidebar (Fixed Left) */}
       <aside
-        className={`hidden lg:flex flex-col fixed top-0 left-0 bottom-0 z-40 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-all duration-300 ${
-          isCollapsed ? 'w-[68px]' : 'w-[230px]'
+        className={`portfolio-sidebar hidden lg:flex flex-col fixed top-0 left-0 bottom-0 z-40 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-all duration-300 ${
+          isCollapsed ? 'w-[250px] -translate-x-full' : 'w-[250px] translate-x-0'
         }`}
       >
         {menuContent}
       </aside>
+
+      {/* Restore Desktop Sidebar */}
+      {isCollapsed && (
+        <button
+          onClick={() => setIsCollapsed(false)}
+          className={`hidden lg:flex fixed left-4 top-3 z-50 h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white shadow-md transition hover:shadow-lg dark:border-slate-700 dark:bg-slate-900 ${palette.primaryText}`}
+          title="Mostrar painel lateral"
+          aria-label="Mostrar painel lateral"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
+      )}
 
       {/* Mobile Drawer Overlay */}
       {isMobileOpen && (
@@ -329,7 +350,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
 
       {/* Mobile Drawer (Slide In) */}
       <aside
-        className={`lg:hidden fixed top-0 left-0 bottom-0 z-50 w-[260px] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform transition-transform duration-300 shadow-2xl ${
+        className={`portfolio-sidebar lg:hidden fixed top-0 left-0 bottom-0 z-50 w-[280px] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform transition-transform duration-300 shadow-2xl ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >

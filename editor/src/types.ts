@@ -115,9 +115,17 @@ export interface Closure {
   acknowledgements: string;
 }
 
+export type PortfolioSectionId = 'capa' | 'sobre' | 'formacao' | 'percurso' | 'ufcds' | 'trabalhos' | 'evolucao' | 'reflexao-final' | 'certificacao' | 'encerramento';
+
+export interface PortfolioSection {
+  id: PortfolioSectionId;
+  visible: boolean;
+}
+
 export interface PortfolioData {
   version: string;
   templateId: string;
+  sections?: PortfolioSection[];
   course: CourseInfo;
   profile: PersonalProfile;
   ufcds: UFCD[];

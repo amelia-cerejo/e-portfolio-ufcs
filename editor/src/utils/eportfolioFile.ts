@@ -1,5 +1,5 @@
 import { PortfolioData } from '../types';
-import { normalizePortfolioData, createBlankTemplate, savePortfolioData } from './storage';
+import { normalizePortfolioData, createBlankTemplate, savePortfolioData, PortfolioTemplate } from './storage';
 
 export interface EportfolioFileEnvelope {
   fileType: 'eportfolio-project';
@@ -172,9 +172,9 @@ export function validateAndParseEportfolio(jsonText: string): ValidationResult {
 /**
  * 1. Novo Projeto: Creates a blank template and clears file handle
  */
-export function handleNewProject(currentData: PortfolioData): { data: PortfolioData; fileName: string } {
+export function handleNewProject(currentData: PortfolioData, template: PortfolioTemplate = 'blank'): { data: PortfolioData; fileName: string } {
   resetActiveFileHandle();
-  const blank = createBlankTemplate();
+  const blank = createBlankTemplate(template);
   savePortfolioData(blank);
   return {
     data: blank,

@@ -1,11 +1,6 @@
 @import "tailwindcss";
 
-html {
-  font-size: 17px;
-}
-
 body {
-  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -47,19 +42,14 @@ body {
   line-height: 1.5;
 }
 
-.text-\[10px\] {
-  font-size: 0.6875rem;
+.portfolio-sidebar nav button,
+.portfolio-sidebar > div > div:last-of-type button {
+  font-size: 0.875rem;
+  line-height: 1.35;
 }
 
-.text-\[11px\] {
-  font-size: 0.75rem;
-  line-height: 1.45;
-}
-
-@media (max-width: 640px) {
-  html {
-    font-size: 16px;
-  }
+.portfolio-sidebar nav button[class*="py-1.5"] {
+  font-size: 0.8125rem;
 }
 
 @media print {

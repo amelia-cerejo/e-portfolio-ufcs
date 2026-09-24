@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { PortfolioData, UFCD, EvidenceItem, FeaturedProject } from './types';
-import { loadPortfolioData, resetToDefaultData, savePortfolioData } from './utils/storage';
+import { PortfolioData, UFCD, EvidenceItem, FeaturedProject, PortfolioSectionId } from './types';
+import { loadPortfolioData, resetToDefaultData, savePortfolioData, PortfolioTemplate } from './utils/storage';
+import { normalizeSections, visibleSections } from './utils/sections';
 import { handleNewProject, handleOpenProject, handleSaveProject, resetActiveFileHandle } from './utils/eportfolioFile';
 import { SidebarNav } from './components/SidebarNav';
 import { TopCompactBar } from './components/TopCompactBar';
@@ -23,6 +24,7 @@ import { SkillsManagerModal } from './components/SkillsManagerModal';
 import { InterestsManagerModal } from './components/InterestsManagerModal';
 import { SkillEvolutionManagerModal } from './components/SkillEvolutionManagerModal';
 import { PortfolioStartPanel } from './components/PortfolioStartPanel';
+import { SectionManagerModal } from './components/SectionManagerModal';
 
 export default function App() {
   const [data, setData] = useState<PortfolioData>(loadPortfolioData);
@@ -53,9 +55,9 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const createBlankPortfolio = () => {
-    if (!window.confirm('Criar um portefólio em branco? O projeto atual neste navegador será substituído. Guarda primeiro uma cópia .eportfolio se o quiseres conservar.')) return;
-    loadProjectIntoView(handleNewProject(data).data);
+  const createPortfolio = (template: PortfolioTemplate) => {
+    if (!window.confirm('Criar um novo portefólio? O projeto atual neste navegador será substituído. Guarda primeiro uma cópia .eportfolio se o quiseres conservar.')) return;
+    loadProjectIntoView(handleNewProject(data, template).data);
     setIsEditMode(true);
   };
 
@@ -96,37 +98,18 @@ export default function App() {
 
   // Scroll spy to update active section on scroll
   useEffect(() => {
-    const sectionIds = [
-      'capa',
-      'sobre',
-      'formacao',
-      'percurso',
-      'ufcds',
-      'trabalhos',
-      'evolucao',
-      'reflexao-final',
-      'certificacao',
-      'encerramento',
-    ];
-
     const handleScroll = () => {
-      const scrollPosition = window.scrollY + 200;
-
-      for (let i = sectionIds.length - 1; i >= 0; i--) {
-        const section = document.getElementById(sectionIds[i]);
-        if (section) {
-          const top = section.offsetTop;
-          if (scrollPosition >= top) {
-            setActiveSection(sectionIds[i]);
-            break;
-          }
-        }
-      }
+      const sections = visibleSections(data)
+        .map((id) => ({ id, top: document.getElementById(id)?.getBoundingClientRect().top ?? Infinity }))
+        .filter((section) => section.top !== Infinity)
+        .sort((a, b) => a.top - b.top);
+      const current = sections.filter((section) => section.top <= 200).at(-1);
+      if (current) setActiveSection(current.id);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [data.sections]);
 
   // Compute completion percentage
   const computeCompletion = (): number => {
@@ -319,12 +302,17 @@ export default function App() {
     }));
   };
 
+  const enabledSections = visibleSections(data);
+  const sectionPosition = (id: PortfolioSectionId) => enabledSections.indexOf(id);
+  const showSection = (id: PortfolioSectionId) => enabledSections.includes(id);
+
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-indigo-500 selection:text-white">
       
       {/* 1. Left Collapsible Sidebar Navigation */}
       <SidebarNav
         data={data}
+        sections={enabledSections}
         activeSection={activeSection}
         setActiveSection={setActiveSection}
         selectedUfcdId={selectedUfcdId}
@@ -339,7 +327,7 @@ export default function App() {
       {/* 2. Main Body Content Area (Adjusts padding dynamically based on sidebar width) */}
       <div
         className={`transition-all duration-300 min-h-screen flex flex-col ${
-          isSidebarCollapsed ? 'lg:pl-[68px]' : 'lg:pl-[230px]'
+          isSidebarCollapsed ? 'lg:pl-0' : 'lg:pl-[250px]'
         }`}
       >
         {/* Public Preview Mode Banner */}
@@ -372,6 +360,7 @@ export default function App() {
           onOpenMobileMenu={() => setIsMobileNavOpen(true)}
           onOpenManagementModal={() => setIsManagementModalOpen(true)}
           onOpenThemeModal={() => setActiveModal('theme')}
+          onManageSections={() => setActiveModal('sections')}
           hasUnsavedChanges={hasUnsavedChanges}
           onSave={async () => {
             await handleSaveProject(data);
@@ -383,51 +372,54 @@ export default function App() {
         />
 
         {/* Main Section Container */}
-        <main className={`max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16 w-full flex-1 ${!isEditMode || isPublicPreviewMode ? 'reading-view' : ''}`}>
+        <main className={`max-w-5xl mx-auto flex flex-col gap-16 px-4 sm:px-6 lg:px-8 py-8 w-full flex-1 ${!isEditMode || isPublicPreviewMode ? 'reading-view' : ''}`}>
           {activeSection === 'capa' && !isPublicPreviewMode && (
             <PortfolioStartPanel
-              onCreateBlank={createBlankPortfolio}
+              onCreateTemplate={createPortfolio}
               onLoadExample={loadExamplePortfolio}
               onOpenProject={openSavedPortfolio}
               onCustomize={() => setActiveModal('theme')}
+              onManageSections={() => setActiveModal('sections')}
             />
           )}
           
           {/* 1. Capa */}
-          <SectionCover
+          {showSection('capa') && <div style={{ order: sectionPosition('capa') }}><SectionCover
             data={data}
             isEditMode={isEditMode}
             onEdit={() => setActiveModal('edit_cover')}
-          />
+          /></div>}
 
           {/* 2. Sobre mim */}
-          <SectionAbout
+          {showSection('sobre') && <div style={{ order: sectionPosition('sobre') }}><SectionAbout
             data={data}
             isEditMode={isEditMode}
             onEdit={() => setActiveModal('edit_about')}
             onEditSkills={() => setActiveModal('edit_skills')}
             onEditInterests={() => setActiveModal('edit_interests')}
-          />
+          /></div>}
 
           {/* 3. A minha formação */}
-          <SectionCourse
+          {showSection('formacao') && <div style={{ order: sectionPosition('formacao') }}><SectionCourse
             data={data}
             isEditMode={isEditMode}
             onEdit={() => setActiveModal('edit_course')}
-          />
+          /></div>}
 
           {/* 4. O meu percurso (Linha temporal das 8 UFCD) */}
-          <SectionTimeline
+          {showSection('percurso') && <div style={{ order: sectionPosition('percurso') }}><SectionTimeline
             data={data}
+            isEditMode={isEditMode && !isPublicPreviewMode}
+            onManageUfcds={() => setActiveModal('ufcd_manager')}
             onSelectUFCD={(ufcdId) => {
               setSelectedUfcdId(ufcdId);
               const el = document.getElementById('ufcds');
               if (el) el.scrollIntoView({ behavior: 'smooth' });
             }}
-          />
+          /></div>}
 
           {/* 5. Uma página por UFCD */}
-          <SectionUFCDPages
+          {showSection('ufcds') && <div style={{ order: sectionPosition('ufcds') }}><SectionUFCDPages
             data={data}
             selectedUfcdId={selectedUfcdId}
             onSelectUfcd={setSelectedUfcdId}
@@ -441,10 +433,10 @@ export default function App() {
               setActiveModal('add_evidence');
             }}
             onDeleteEvidence={handleDeleteEvidence}
-          />
+          /></div>}
 
           {/* 6. Projetos e trabalhos em destaque */}
-          <SectionFeaturedProjects
+          {showSection('trabalhos') && <div style={{ order: sectionPosition('trabalhos') }}><SectionFeaturedProjects
             data={data}
             isEditMode={isEditMode}
             onAddProject={() => {
@@ -456,33 +448,33 @@ export default function App() {
               setActiveModal('edit_project');
             }}
             onDeleteProject={handleDeleteProject}
-          />
+          /></div>}
 
           {/* 7. Evolução das competências */}
-          <SectionSkillEvolution
+          {showSection('evolucao') && <div style={{ order: sectionPosition('evolucao') }}><SectionSkillEvolution
             data={data}
             isEditMode={isEditMode}
             onEdit={() => setActiveModal('edit_skills_evolution')}
-          />
+          /></div>}
 
           {/* 8. Reflexão final */}
-          <SectionFinalReflection
+          {showSection('reflexao-final') && <div style={{ order: sectionPosition('reflexao-final') }}><SectionFinalReflection
             data={data}
             isEditMode={isEditMode}
             onEdit={() => setActiveModal('edit_final_reflection')}
-          />
+          /></div>}
 
           {/* 9. Certificação */}
-          <SectionCertification
+          {showSection('certificacao') && <div style={{ order: sectionPosition('certificacao') }}><SectionCertification
             data={data}
-          />
+          /></div>}
 
           {/* 10. Encerramento */}
-          <SectionClosure
+          {showSection('encerramento') && <div style={{ order: sectionPosition('encerramento') }}><SectionClosure
             data={data}
             isEditMode={isEditMode}
             onEdit={() => setActiveModal('edit_closure')}
-          />
+          /></div>}
         </main>
 
       {/* Edit Cover Modal */}
@@ -560,7 +552,7 @@ export default function App() {
           { key: 'entityName', label: 'Entidade Formadora' },
           { key: 'modality', label: 'Modalidade (ex: formação a distância)' },
           { key: 'duration', label: 'Duração Total (ex: 275 horas)' },
-          { key: 'trainerName', label: 'Formadores (ex: Amélia Cerejo Lopes e outros formadores)' },
+          { key: 'trainerName', label: 'Formadores' },
         ]}
         onSave={(values) => handleUpdateSection('course', values)}
       />
@@ -676,6 +668,13 @@ export default function App() {
       />
 
       {/* Theme Customizer Modal */}
+      <SectionManagerModal
+        isOpen={activeModal === 'sections'}
+        sections={data.sections}
+        onChange={(sections) => setData((prev) => ({ ...prev, sections: normalizeSections(sections) }))}
+        onClose={() => setActiveModal(null)}
+      />
+
       <ThemeCustomizerModal
         theme={data.theme}
         isOpen={activeModal === 'theme'}

@@ -27,7 +27,7 @@ export const SectionFinalReflection: React.FC<SectionFinalReflectionProps> = ({
   ];
 
   return (
-    <section id="reflexao" className="scroll-mt-24 space-y-6">
+    <section id="reflexao-final" className="scroll-mt-24 space-y-6">
       {/* Section Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
@@ -35,9 +35,9 @@ export const SectionFinalReflection: React.FC<SectionFinalReflectionProps> = ({
             <MessageSquare className="w-6 h-6 text-indigo-500" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">8. Reflexão final da ação</h2>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Reflexão final</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              Balanço global e resposta às 6 questões orientadoras sobre o percurso na Ação {data.course.actionNumber}
+              Balanço global e resposta às questões orientadoras sobre o percurso{data.course.actionNumber ? ` na Ação ${data.course.actionNumber}` : ''}
             </p>
           </div>
         </div>
@@ -60,10 +60,10 @@ export const SectionFinalReflection: React.FC<SectionFinalReflectionProps> = ({
         <div className="bg-slate-50 dark:bg-slate-800/60 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
           <h3 className="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
             <CheckCircle2 className={`w-5 h-5 ${palette.primaryText}`} />
-            Balanço Global da Formação
+            Balanço global
           </h3>
           <p className="text-slate-700 dark:text-slate-200 text-sm md:text-base leading-relaxed whitespace-pre-line">
-            {reflection.overallReflection || 'Apresente aqui o seu balanço pessoal global sobre a formação.'}
+            {reflection.overallReflection || 'Apresente aqui o seu balanço pessoal sobre o percurso.'}
           </p>
         </div>
 

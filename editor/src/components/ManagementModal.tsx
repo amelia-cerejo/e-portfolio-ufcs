@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { PortfolioData } from '../types';
 import { resetToDefaultData } from '../utils/storage';
+import { PortfolioTemplate } from '../utils/storage';
 import { generatePortfolioZip } from '../utils/exportZip';
 import { PublicExportOptions } from '../utils/generateStandaloneHtml';
 import {
@@ -64,9 +65,9 @@ export const ManagementModal: React.FC<ManagementModalProps> = ({
   const currentFileName = getActiveFileName();
 
   // 1. Novo projeto
-  const onNewProjectClick = () => {
+  const onNewProjectClick = (template: PortfolioTemplate) => {
     if (window.confirm('Aviso: Esta ação irá criar um Novo Projeto em branco (.eportfolio). Os dados não guardados serão substituídos. Certifique-se de que guardou o seu projeto. Pretende continuar?')) {
-      const res = handleNewProject(data);
+      const res = handleNewProject(data, template);
       onDataLoaded(res.data);
       alert('Novo projeto em branco criado com sucesso! Pode agora iniciar o seu trabalho.');
       onClose();
@@ -214,12 +215,17 @@ export const ManagementModal: React.FC<ManagementModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={onNewProjectClick}
+                onClick={() => onNewProjectClick('blank')}
                 className="p-3.5 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50/60 dark:bg-indigo-950/30 hover:bg-indigo-100 dark:hover:bg-indigo-950/50 transition text-left flex items-start gap-3"
               >
                 <FilePlus className="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                <span><strong className="block text-sm text-slate-900 dark:text-white">Portefólio em branco</strong><small className="block text-slate-600 dark:text-slate-300 mt-1">Começar com uma UFCD e acrescentar outras.</small></span>
+                <span><strong className="block text-sm text-slate-900 dark:text-white">Portefólio em branco</strong><small className="block text-slate-600 dark:text-slate-300 mt-1">Escolher as secções necessárias.</small></span>
               </button>
+              {(['training', 'professional', 'projects'] as PortfolioTemplate[]).map((template) => (
+                <button key={template} type="button" onClick={() => onNewProjectClick(template)} className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-left">
+                  <strong className="block text-sm text-slate-900 dark:text-white">{template === 'training' ? 'Formação e UFCD' : template === 'professional' ? 'Profissional' : 'Projetos'}</strong>
+                </button>
+              ))}
               <button
                 type="button"
                 onClick={onLoadExampleClick}

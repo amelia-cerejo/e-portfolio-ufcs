@@ -1,4 +1,5 @@
 import { PortfolioData } from '../types';
+import { generateConfigurableHtml } from './generateConfigurableHtml';
 
 export interface PublicExportOptions {
   includeBio?: boolean;
@@ -25,6 +26,7 @@ export function escapeHtml(str: string): string {
  * - CDN Tailwind CSS is loaded when online for enhanced styling.
  */
 export function generateStandaloneHtml(data: PortfolioData, options: PublicExportOptions = {}): string {
+  if (data.sections) return generateConfigurableHtml(data, options);
   const {
     includeBio = true,
     includeBackground = true,

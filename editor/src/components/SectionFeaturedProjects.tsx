@@ -21,7 +21,7 @@ export const SectionFeaturedProjects: React.FC<SectionFeaturedProjectsProps> = (
   const palette = themePalettes[data.theme.themeColor] || themePalettes.indigo;
 
   return (
-    <section id="projetos" className="scroll-mt-24 space-y-6">
+    <section id="trabalhos" className="scroll-mt-24 space-y-6">
       {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
@@ -31,7 +31,7 @@ export const SectionFeaturedProjects: React.FC<SectionFeaturedProjectsProps> = (
           <div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">6. Trabalhos e projetos em destaque</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              Seleção dos trabalhos mais relevantes realizados ao longo da formação
+              Seleção dos trabalhos e projetos mais relevantes
             </p>
           </div>
         </div>
@@ -159,7 +159,7 @@ export const SectionFeaturedProjects: React.FC<SectionFeaturedProjectsProps> = (
             Nenhum trabalho em destaque adicionado ainda.
           </p>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
-            Destaque os trabalhos mais representativos elaborados durante as 8 UFCD.
+            Destaque os trabalhos e projetos que quer apresentar.
           </p>
           {isEditMode && (
             <button

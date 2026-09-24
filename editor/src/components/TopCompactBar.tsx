@@ -6,7 +6,8 @@ import {
   CheckCircle2,
   Settings,
   Sparkles,
-  Save
+  Save,
+  Layers
 } from 'lucide-react';
 import { PortfolioData } from '../types';
 import { themePalettes } from '../utils/theme';
@@ -20,6 +21,7 @@ interface TopCompactBarProps {
   onOpenMobileMenu: () => void;
   onOpenManagementModal: () => void;
   onOpenThemeModal: () => void;
+  onManageSections: () => void;
   hasUnsavedChanges?: boolean;
   onSave?: () => void;
   lastSavedTime?: string | null;
@@ -34,6 +36,7 @@ export const TopCompactBar: React.FC<TopCompactBarProps> = ({
   onOpenMobileMenu,
   onOpenManagementModal,
   onOpenThemeModal,
+  onManageSections,
   hasUnsavedChanges = false,
   onSave,
   lastSavedTime,
@@ -154,6 +157,13 @@ export const TopCompactBar: React.FC<TopCompactBarProps> = ({
             </>
           )}
         </button>
+
+        {isEditMode && <button
+          onClick={onManageSections}
+          className="flex items-center gap-1.5 rounded-xl border border-indigo-200 px-2 py-1.5 text-xs font-bold text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-300"
+          title="Organizar secções"
+          aria-label="Organizar secções"
+        ><Layers className="h-3.5 w-3.5" /><span className="hidden xl:inline">Secções</span></button>}
 
         <button
           onClick={onOpenThemeModal}

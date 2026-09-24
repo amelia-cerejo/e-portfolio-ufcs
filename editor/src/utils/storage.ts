@@ -1,5 +1,6 @@
 import { PortfolioData, UFCD, FeaturedProject } from '../types';
 import { defaultPortfolioData } from '../data/defaultData';
+import { normalizeSections, sectionOrder } from './sections';
 
 const STORAGE_KEY = 'eportfolio_master_data_v1';
 
@@ -43,6 +44,7 @@ export function normalizePortfolioData(data: PortfolioData): PortfolioData {
   return {
     version: data.version || defaults.version,
     templateId: data.templateId || defaults.templateId,
+    sections: normalizeSections(data.sections),
     theme: {
       ...defaults.theme,
       ...(data.theme || {}),
@@ -128,10 +130,19 @@ export function resetToDefaultData(): PortfolioData {
   return defaultPortfolioData;
 }
 
-function buildBlankTemplate(): PortfolioData {
+export type PortfolioTemplate = 'blank' | 'training' | 'professional' | 'projects';
+
+function buildBlankTemplate(template: PortfolioTemplate = 'blank'): PortfolioData {
+  const visibleByTemplate: Record<PortfolioTemplate, string[]> = {
+    blank: ['capa', 'sobre', 'trabalhos'],
+    training: sectionOrder,
+    professional: ['capa', 'sobre', 'trabalhos', 'evolucao', 'reflexao-final', 'encerramento'],
+    projects: ['capa', 'sobre', 'trabalhos', 'reflexao-final', 'encerramento'],
+  };
   const blankData: PortfolioData = {
     ...defaultPortfolioData,
-    templateId: 'eportfolio_generico',
+    templateId: `eportfolio_${template}`,
+    sections: sectionOrder.map((id) => ({ id, visible: visibleByTemplate[template].includes(id) })),
     theme: {
       ...defaultPortfolioData.theme,
       entityLogoUrl: '',
@@ -155,7 +166,7 @@ function buildBlankTemplate(): PortfolioData {
     },
     profile: {
       ...defaultPortfolioData.profile,
-      studentName: 'Nome do Formando',
+      studentName: template === 'training' ? 'Nome do Formando' : 'O meu nome',
       studentPhoto: '',
       presentationPhrase: '',
       bio: '',
@@ -170,7 +181,7 @@ function buildBlankTemplate(): PortfolioData {
       github: '',
       website: '',
     },
-    ufcds: [{
+    ufcds: template === 'training' ? [{
       id: 'ufcd_inicial',
       code: '',
       name: 'A minha UFCD',
@@ -184,7 +195,7 @@ function buildBlankTemplate(): PortfolioData {
       skillsDeveloped: '',
       finalReflection: '',
       evidences: [],
-    }],
+    }] : [],
     featuredProjects: [],
     skillEvolutions: [],
     finalReflection: {
@@ -201,8 +212,8 @@ function buildBlankTemplate(): PortfolioData {
   return blankData;
 }
 
-export function createBlankTemplate(): PortfolioData {
-  const blankData = buildBlankTemplate();
+export function createBlankTemplate(template: PortfolioTemplate = 'blank'): PortfolioData {
+  const blankData = buildBlankTemplate(template);
   savePortfolioData(blankData);
   return blankData;
 }
