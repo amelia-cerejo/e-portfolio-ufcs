@@ -141,6 +141,7 @@ export interface PortfolioData {
   templateId: string;
   sections?: PortfolioSection[];
   pdfOptions?: PdfOptions;
+  publishedPdf?: { name: string; dataUrl: string; sourceHtml: string };
   course: CourseInfo;
   profile: PersonalProfile;
   ufcds: UFCD[];

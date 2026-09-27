@@ -6,7 +6,7 @@ import { normalizeSections, sectionLabels } from '../utils/sections';
 
 interface Props {
   data: PortfolioData;
-  onSave: (options: PdfOptions) => void;
+  onSave: (options: PdfOptions, publishedPdf: PortfolioData['publishedPdf']) => void;
   onClose: () => void;
 }
 
@@ -14,15 +14,33 @@ export const PdfCustomizerModal: React.FC<Props> = ({ data, onSave, onClose }) =
   const [options, setOptions] = useState(() => normalizePdfOptions(data));
   const [printing, setPrinting] = useState(false);
   const [error, setError] = useState('');
+  const [publishedPdf, setPublishedPdf] = useState(data.publishedPdf);
   const frame = useRef<HTMLIFrameElement>(null);
   const html = useMemo(() => generatePdfHtml(data, options), [data, options]);
   const update = <K extends keyof PdfOptions>(key: K, value: PdfOptions[K]) => setOptions(current => ({ ...current, [key]: value }));
   const toggle = (key: 'sections' | 'pageBreaks' | 'ufcdIds' | 'projectIds', id: string) => {
     setOptions(current => ({ ...current, [key]: current[key].includes(id as never) ? current[key].filter(item => item !== id) : [...current[key], id] } as PdfOptions));
   };
-  const finish = () => { onSave(options); onClose(); };
+  const save = () => onSave(options, publishedPdf);
+  const finish = () => { save(); onClose(); };
+  const attachPdf = async (file?: File) => {
+    if (!file) return;
+    setError('');
+    if (file.size > 15 * 1024 * 1024 || new TextDecoder().decode(await file.slice(0, 5).arrayBuffer()) !== '%PDF-') {
+      setError('Escolhe um ficheiro PDF válido com até 15 MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const attachment = { name: file.name, dataUrl: `data:application/pdf;base64,${String(reader.result).split(',')[1]}`, sourceHtml: html };
+      setPublishedPdf(attachment);
+      onSave(options, attachment);
+    };
+    reader.onerror = () => setError('Não foi possível ler o PDF. Tenta novamente.');
+    reader.readAsDataURL(file);
+  };
   const download = () => {
-    onSave(options);
+    save();
     const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
     const link = document.createElement('a');
     link.href = url;
@@ -45,7 +63,7 @@ export const PdfCustomizerModal: React.FC<Props> = ({ data, onSave, onClose }) =
         image.addEventListener('load', done);
         image.addEventListener('error', done);
       })));
-      onSave(options);
+      save();
       win.focus();
       win.print();
     } catch {
@@ -62,6 +80,12 @@ export const PdfCustomizerModal: React.FC<Props> = ({ data, onSave, onClose }) =
         </header>
         <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto md:grid-cols-[340px_minmax(0,1fr)] md:overflow-hidden">
           <div className="space-y-5 p-5 md:overflow-y-auto">
+            <fieldset className="space-y-2"><legend className="font-semibold">PDF no site final</legend>
+              <p className="text-sm">Guarda o PDF pela impressão e adiciona aqui esse ficheiro. O ZIP inclui a versão escolhida, sem configurações para os visitantes.</p>
+              <label className="block text-sm font-semibold">Adicionar PDF ao site<input type="file" accept="application/pdf,.pdf" className="mt-2 block w-full text-sm" onChange={event => { void attachPdf(event.target.files?.[0]); event.target.value = ''; }} /></label>
+              {publishedPdf && <><p className="break-words text-sm">{publishedPdf.name}</p><p role="status" className="text-sm">{publishedPdf.sourceHtml === html ? 'PDF pronto para incluir no site.' : 'O conteúdo ou as opções mudaram. Guarda e adiciona novamente o PDF atualizado.'}</p><button type="button" className="text-sm underline" onClick={() => { setPublishedPdf(undefined); onSave(options, undefined); }}>Remover PDF do site</button></>}
+              <p className="text-xs text-slate-500">O PDF será público com o site. Revê também o seu conteúdo antes de partilhar. Máximo: 15 MB. Guarda o projeto .eportfolio para conservar o PDF; ficheiros grandes podem exceder a gravação automática do navegador.</p>
+            </fieldset>
             <div className="flex items-center justify-between"><h3 className="font-semibold">Página A4</h3><button type="button" aria-label="Restaurar opções PDF" title="Restaurar opções PDF" onClick={() => setOptions(normalizePdfOptions({ ...data, pdfOptions: undefined }))} className="rounded-md p-2 hover:bg-slate-100 dark:hover:bg-slate-800"><RotateCcw className="h-4 w-4" /></button></div>
             <label className="block text-sm">Orientação<select aria-label="Orientação PDF" value={options.orientation} onChange={event => update('orientation', event.target.value as PdfOptions['orientation'])} className="mt-1 w-full rounded-md border border-slate-300 bg-white p-2 dark:border-slate-600 dark:bg-slate-800"><option value="portrait">Vertical</option><option value="landscape">Horizontal</option></select></label>
             <div className="grid grid-cols-2 gap-3">

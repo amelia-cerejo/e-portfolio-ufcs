@@ -63,7 +63,7 @@ export const ManagementModal: React.FC<ManagementModalProps> = ({
   const [isPdfOpen, setIsPdfOpen] = useState(false);
 
   if (!isOpen) return null;
-  if (isPdfOpen) return <PdfCustomizerModal data={data} onSave={pdfOptions => onDataLoaded({ ...data, pdfOptions })} onClose={() => setIsPdfOpen(false)} />;
+  if (isPdfOpen) return <PdfCustomizerModal data={data} onSave={(pdfOptions, publishedPdf) => onDataLoaded({ ...data, pdfOptions, publishedPdf })} onClose={() => setIsPdfOpen(false)} />;
 
   const currentFileName = getActiveFileName();
 

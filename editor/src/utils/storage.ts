@@ -46,6 +46,7 @@ export function normalizePortfolioData(data: PortfolioData): PortfolioData {
     version: data.version || defaults.version,
     templateId: data.templateId || defaults.templateId,
     sections: normalizeSections(data.sections),
+    ...(data.publishedPdf && /^data:application\/pdf;base64,[A-Za-z0-9+/=]+$/.test(data.publishedPdf.dataUrl) ? { publishedPdf: data.publishedPdf } : {}),
     ...(data.pdfOptions ? { pdfOptions: normalizePdfOptions({ ...data, ufcds: normalizedUfcds, featuredProjects: normalizedProjects }) } : {}),
     theme: {
       ...defaults.theme,
