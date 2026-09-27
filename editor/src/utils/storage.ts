@@ -1,6 +1,7 @@
 import { PortfolioData, UFCD, FeaturedProject } from '../types';
 import { defaultPortfolioData } from '../data/defaultData';
 import { normalizeSections, sectionOrder } from './sections';
+import { normalizePdfOptions } from './pdf';
 
 const STORAGE_KEY = 'eportfolio_master_data_v1';
 
@@ -45,6 +46,7 @@ export function normalizePortfolioData(data: PortfolioData): PortfolioData {
     version: data.version || defaults.version,
     templateId: data.templateId || defaults.templateId,
     sections: normalizeSections(data.sections),
+    ...(data.pdfOptions ? { pdfOptions: normalizePdfOptions({ ...data, ufcds: normalizedUfcds, featuredProjects: normalizedProjects }) } : {}),
     theme: {
       ...defaults.theme,
       ...(data.theme || {}),

@@ -21,6 +21,7 @@ import { resetToDefaultData } from '../utils/storage';
 import { PortfolioTemplate } from '../utils/storage';
 import { generatePortfolioZip } from '../utils/exportZip';
 import { PublicExportOptions } from '../utils/generateStandaloneHtml';
+import { PdfCustomizerModal } from './PdfCustomizerModal';
 import {
   handleNewProject,
   handleOpenProject,
@@ -59,8 +60,10 @@ export const ManagementModal: React.FC<ManagementModalProps> = ({
     includeReflections: true,
     includeTrainerName: true,
   });
+  const [isPdfOpen, setIsPdfOpen] = useState(false);
 
   if (!isOpen) return null;
+  if (isPdfOpen) return <PdfCustomizerModal data={data} onSave={pdfOptions => onDataLoaded({ ...data, pdfOptions })} onClose={() => setIsPdfOpen(false)} />;
 
   const currentFileName = getActiveFileName();
 
@@ -150,11 +153,7 @@ export const ManagementModal: React.FC<ManagementModalProps> = ({
 
   // Exportar para PDF
   const handleExportPDF = () => {
-    onClose();
-    setTimeout(() => {
-      alert('Para guardar como PDF: na janela de impressão do seu navegador, escolha "Guardar como PDF" no campo Destino.');
-      window.print();
-    }, 200);
+    setIsPdfOpen(true);
   };
 
   // Personalizar apresentação

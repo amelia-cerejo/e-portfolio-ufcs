@@ -122,10 +122,25 @@ export interface PortfolioSection {
   visible: boolean;
 }
 
+export interface PdfOptions {
+  sections: PortfolioSectionId[];
+  ufcdIds: string[];
+  projectIds: string[];
+  pageBreaks: PortfolioSectionId[];
+  orientation: 'portrait' | 'landscape';
+  fontSize: 10 | 11 | 12 | 14;
+  margin: 10 | 15 | 20;
+  eachUfcdNewPage: boolean;
+  includeImages: boolean;
+  includeReflections: boolean;
+  includeDifficulties: boolean;
+}
+
 export interface PortfolioData {
   version: string;
   templateId: string;
   sections?: PortfolioSection[];
+  pdfOptions?: PdfOptions;
   course: CourseInfo;
   profile: PersonalProfile;
   ufcds: UFCD[];

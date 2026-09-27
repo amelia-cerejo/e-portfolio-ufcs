@@ -2,6 +2,7 @@ import { PortfolioData } from '../types';
 import { generateConfigurableHtml } from './generateConfigurableHtml';
 
 export interface PublicExportOptions {
+  includeImages?: boolean;
   includeBio?: boolean;
   includeBackground?: boolean;
   includeDifficulties?: boolean;

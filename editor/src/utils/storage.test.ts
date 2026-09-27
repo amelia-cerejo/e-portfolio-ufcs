@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultPortfolioData } from '../data/defaultData';
 import { generateStandaloneHtml } from './generateStandaloneHtml';
+import { normalizePdfOptions } from './pdf';
 import { createBlankTemplate, loadPortfolioData, normalizePortfolioData, resetToDefaultData, savePortfolioData } from './storage';
 
 const saved = new Map<string, string>();
@@ -78,4 +79,14 @@ test('o exemplo 26109 pode ser recuperado depois de um projeto em branco', () =>
   assert.equal(example.course.actionNumber, '26109');
   assert.equal(loadPortfolioData().ufcds.length, 8);
   assert.equal(loadPortfolioData().templateId, defaultPortfolioData.templateId);
+});
+
+test('as opções PDF sobrevivem à gravação e ao carregamento', () => {
+  const data = createBlankTemplate('training');
+  const pdfOptions = { ...normalizePdfOptions(data), fontSize: 14 as const, orientation: 'landscape' as const, sections: ['sobre'] as const };
+  savePortfolioData({ ...data, pdfOptions: { ...pdfOptions, sections: [...pdfOptions.sections] } });
+  const loaded = loadPortfolioData();
+  assert.equal(loaded.pdfOptions?.fontSize, 14);
+  assert.equal(loaded.pdfOptions?.orientation, 'landscape');
+  assert.deepEqual(loaded.pdfOptions?.sections, ['sobre']);
 });
