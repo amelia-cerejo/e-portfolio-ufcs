@@ -20,6 +20,27 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
   const [font, setFont] = useState<FontStyle>(theme.fontStyle || 'sans');
   const [entityLogoUrl, setEntityLogoUrl] = useState(theme.entityLogoUrl || '');
   const [customBannerUrl, setCustomBannerUrl] = useState(theme.customBannerUrl || '');
+  const [bannerError, setBannerError] = useState('');
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setCustomBannerUrl(theme.customBannerUrl || '');
+      setBannerError('');
+    }
+  }, [isOpen, theme.customBannerUrl]);
+
+  const chooseBanner = (file?: File) => {
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) {
+      setBannerError('Escolhe uma imagem JPG, PNG ou WebP até 2 MB.');
+      return;
+    }
+    setBannerError('');
+    const reader = new FileReader();
+    reader.onload = () => setCustomBannerUrl(String(reader.result));
+    reader.onerror = () => setBannerError('Não foi possível ler a imagem. Tenta novamente.');
+    reader.readAsDataURL(file);
+  };
 
   if (!isOpen) return null;
 
@@ -37,7 +58,7 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-lg overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         
         <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
           <div className="flex items-center space-x-2">
@@ -144,10 +165,15 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
             <input
               type="text"
               placeholder="https://images.unsplash.com/photo-..."
-              value={customBannerUrl}
+              value={customBannerUrl.startsWith('data:') ? '' : customBannerUrl}
               onChange={(e) => setCustomBannerUrl(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
+            <p className="my-2 text-slate-500">ou escolhe uma imagem do computador</p>
+            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => { chooseBanner(e.target.files?.[0]); e.target.value = ''; }} className="block w-full text-xs text-slate-700 dark:text-slate-200" />
+            <p className="mt-2 text-slate-500">JPG, PNG ou WebP até 2 MB. O ficheiro escolhido fica guardado no projeto; uma imagem por URL depende dessa ligação.</p>
+            {customBannerUrl && <><img src={customBannerUrl} alt="Pré-visualização da capa" className="mt-2 h-24 w-full rounded-md object-cover" /><button type="button" onClick={() => setCustomBannerUrl('')} className="mt-2 text-indigo-600 underline">Remover imagem da capa</button></>}
+            {bannerError && <p role="alert" className="mt-2 text-red-700">{bannerError}</p>}
           </div>
 
           <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end space-x-3">

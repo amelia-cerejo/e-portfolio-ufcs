@@ -4,8 +4,9 @@ import { X, Save } from 'lucide-react';
 interface FieldConfig {
   key: string;
   label: string;
-  type?: 'text' | 'textarea' | 'number' | 'url';
+  type?: 'text' | 'textarea' | 'number' | 'url' | 'select' | 'image';
   rows?: number;
+  options?: { value: string; label: string }[];
 }
 
 interface EditModalProps {
@@ -26,9 +27,11 @@ export const EditModal: React.FC<EditModalProps> = ({
   onSave,
 }) => {
   const [formData, setFormData] = React.useState<Record<string, any>>(initialValues);
+  const [fileError, setFileError] = React.useState('');
 
   React.useEffect(() => {
     setFormData(initialValues);
+    setFileError('');
   }, [initialValues, isOpen]);
 
   if (!isOpen) return null;
@@ -41,6 +44,19 @@ export const EditModal: React.FC<EditModalProps> = ({
     e.preventDefault();
     onSave(formData);
     onClose();
+  };
+
+  const handleImage = (key: string, file?: File) => {
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) {
+      setFileError('Escolhe uma imagem JPG, PNG ou WebP até 2 MB.');
+      return;
+    }
+    setFileError('');
+    const reader = new FileReader();
+    reader.onload = () => handleChange(key, String(reader.result));
+    reader.onerror = () => setFileError('Não foi possível ler a imagem. Tenta novamente.');
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -66,7 +82,22 @@ export const EditModal: React.FC<EditModalProps> = ({
                 {field.label}
               </label>
 
-              {field.type === 'textarea' ? (
+              {field.type === 'image' ? (
+                <div className="space-y-2">
+                  {formData[field.key] && <img src={formData[field.key]} alt="Pré-visualização da foto de perfil" className="h-24 w-24 rounded-md object-cover" />}
+                  <label className="block text-slate-600 dark:text-slate-300">URL da foto de perfil
+                    <input type="url" value={String(formData[field.key] || '').startsWith('data:') ? '' : formData[field.key] || ''} onChange={(e) => handleChange(field.key, e.target.value)} placeholder="https://exemplo.pt/foto.jpg" className="mt-1 block w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs" />
+                  </label>
+                  <span className="block text-slate-500">ou escolhe uma imagem do computador</span>
+                  <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => { handleImage(field.key, e.target.files?.[0]); e.target.value = ''; }} className="block w-full text-xs" />
+                  {formData[field.key] && <button type="button" onClick={() => handleChange(field.key, '')} className="text-indigo-600 underline">Remover fotografia</button>}
+                  <p className="text-slate-500">O ficheiro escolhido fica guardado no projeto (JPG, PNG ou WebP até 2 MB). Uma foto por URL continua a depender dessa ligação.</p>
+                </div>
+              ) : field.type === 'select' ? (
+                <select value={formData[field.key] ?? ''} onChange={(e) => handleChange(field.key, e.target.value)} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs">
+                  {field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select>
+              ) : field.type === 'textarea' ? (
                 <textarea
                   value={formData[field.key] || ''}
                   onChange={(e) => handleChange(field.key, e.target.value)}
@@ -83,6 +114,7 @@ export const EditModal: React.FC<EditModalProps> = ({
               )}
             </div>
           ))}
+          {fileError && <p role="alert" className="text-red-700">{fileError}</p>}
 
           {/* Footer Buttons */}
           <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end space-x-3">

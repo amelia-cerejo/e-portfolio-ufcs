@@ -242,6 +242,7 @@ export default function App() {
                 ...p,
                 title: values.title,
                 context: values.context,
+                ufcdId: values.ufcdId,
                 description: values.description,
                 whatILearned: values.whatILearned,
                 isGroupWork: isGroup,
@@ -495,7 +496,7 @@ export default function App() {
         fields={[
           { key: 'studentName', label: 'Nome do Formando' },
           { key: 'presentationPhrase', label: 'Frase de Apresentação', type: 'textarea', rows: 2 },
-          { key: 'studentPhoto', label: 'URL da Foto do Formando' },
+          { key: 'studentPhoto', label: 'Foto de perfil', type: 'image' },
           { key: 'actionNumber', label: 'Número da Ação' },
           { key: 'actionTitle', label: 'Designação da Ação' },
           { key: 'entityName', label: 'Entidade Formadora' },
@@ -598,6 +599,7 @@ export default function App() {
         onClose={() => setActiveModal(null)}
         initialValues={{
           title: editingProject?.title || '',
+          ufcdId: editingProject ? editingProject.ufcdId : data.ufcds[0]?.id || '',
           context: editingProject?.context || 'Trabalho de Grupo',
           description: editingProject?.description || '',
           whatILearned: editingProject?.whatILearned || '',
@@ -607,10 +609,11 @@ export default function App() {
         }}
         fields={[
           { key: 'title', label: 'Nome do Trabalho' },
+          { key: 'ufcdId', label: 'UFCD associada', type: 'select', options: [{ value: '', label: 'Sem UFCD associada' }, ...data.ufcds.map((ufcd) => ({ value: ufcd.id, label: `UFCD ${ufcd.code} - ${ufcd.name}` }))] },
           { key: 'context', label: 'Contexto (ex: Trabalho da UFCD 0778)' },
           { key: 'description', label: 'O que fiz (descrição)', type: 'textarea', rows: 3 },
           { key: 'whatILearned', label: 'O que aprendi', type: 'textarea', rows: 2 },
-          { key: 'isGroupWork', label: 'Trabalho de Grupo? (sim / nao)' },
+          { key: 'isGroupWork', label: 'Tipo de trabalho', type: 'select', options: [{ value: 'nao', label: 'Trabalho individual' }, { value: 'sim', label: 'Trabalho de grupo' }] },
           { key: 'imageUrl', label: 'URL da Imagem de Pré-visualização (Opcional)' },
           { key: 'linkUrl', label: 'Ligação para o Trabalho / Drive / GitHub (Opcional)' },
         ]}

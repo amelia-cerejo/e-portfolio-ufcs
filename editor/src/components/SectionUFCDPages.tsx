@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { PortfolioData, UFCD, EvidenceItem, EvidenceType } from '../types';
 import { themePalettes } from '../utils/theme';
+import { ResourcePreviewModal, isPreviewableImage, isSafeResource } from './ResourcePreviewModal';
 
 interface SectionUFCDPagesProps {
   data: PortfolioData;
@@ -48,7 +49,7 @@ export const SectionUFCDPages: React.FC<SectionUFCDPagesProps> = ({
 }) => {
   const palette = themePalettes[data.theme.themeColor] || themePalettes.indigo;
   const [activeTab, setActiveTab] = useState<string>(selectedUfcdId || data.ufcds[0]?.id || '');
-  const [selectedImageModal, setSelectedImageModal] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ url: string; title: string } | null>(null);
 
   // Sync state if parent selectedUfcdId changes
   React.useEffect(() => {
@@ -350,9 +351,9 @@ export const SectionUFCDPages: React.FC<SectionUFCDPagesProps> = ({
                     </div>
 
                     {/* Image Preview if image */}
-                    {evidence.type === 'image' && evidence.url && (
+                    {evidence.type === 'image' && evidence.url && isPreviewableImage(evidence.url) && (
                       <div
-                        onClick={() => setSelectedImageModal(evidence.url)}
+                        onClick={() => setPreview({ url: evidence.url, title: evidence.title })}
                         className="relative h-36 w-full rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-900 cursor-pointer group-hover:opacity-95 transition"
                       >
                         <img src={evidence.url} alt={evidence.title} className="w-full h-full object-cover" />
@@ -374,16 +375,14 @@ export const SectionUFCDPages: React.FC<SectionUFCDPagesProps> = ({
                   <div className="pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-xs text-slate-400">
                     <span>{evidence.date}</span>
 
-                    {evidence.url && (
-                      <a
-                        href={evidence.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                    {evidence.url && isSafeResource(evidence.url) && (
+                      <button type="button"
+                        onClick={() => setPreview({ url: evidence.url, title: evidence.title })}
                         className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
                       >
                         <span>Abrir Evidência</span>
                         <ExternalLink className="w-3 h-3" />
-                      </a>
+                      </button>
                     )}
                   </div>
                 </div>
@@ -437,18 +436,7 @@ export const SectionUFCDPages: React.FC<SectionUFCDPagesProps> = ({
         </div>
       </div>
 
-      {/* Lightbox Image Preview Modal */}
-      {selectedImageModal && (
-        <div
-          onClick={() => setSelectedImageModal(null)}
-          className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm p-4 flex items-center justify-center cursor-pointer"
-        >
-          <div className="relative max-w-4xl max-h-[90vh]">
-            <img src={selectedImageModal} alt="Evidência Ampliada" className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl" />
-            <p className="text-center text-xs text-slate-300 mt-2">Clique em qualquer lugar para fechar</p>
-          </div>
-        </div>
-      )}
+      {preview && <ResourcePreviewModal {...preview} onClose={() => setPreview(null)} />}
     </section>
   );
 };

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Star, Plus, Edit2, Trash2, ExternalLink, Users, User, BookOpen } from 'lucide-react';
 import { PortfolioData, FeaturedProject } from '../types';
 import { themePalettes } from '../utils/theme';
+import { ResourcePreviewModal, isSafeResource } from './ResourcePreviewModal';
 
 interface SectionFeaturedProjectsProps {
   data: PortfolioData;
@@ -19,6 +20,7 @@ export const SectionFeaturedProjects: React.FC<SectionFeaturedProjectsProps> = (
   onDeleteProject,
 }) => {
   const palette = themePalettes[data.theme.themeColor] || themePalettes.indigo;
+  const [preview, setPreview] = useState<{ url: string; title: string } | null>(null);
 
   return (
     <section id="trabalhos" className="scroll-mt-24 space-y-6">
@@ -135,18 +137,16 @@ export const SectionFeaturedProjects: React.FC<SectionFeaturedProjectsProps> = (
                 </div>
 
                 {/* Footer Link Button */}
-                {project.linkUrl && (
+                {project.linkUrl && isSafeResource(project.linkUrl) && (
                   <div className="p-4 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
                     <span className="text-slate-400 font-medium">Ver trabalho completo</span>
-                    <a
-                      href={project.linkUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button type="button"
+                      onClick={() => setPreview({ url: project.linkUrl, title: project.title })}
                       className={`font-semibold ${palette.primaryText} hover:underline flex items-center gap-1`}
                     >
                       <span>Aceder à Ligação</span>
                       <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
+                    </button>
                   </div>
                 )}
               </div>
@@ -172,6 +172,7 @@ export const SectionFeaturedProjects: React.FC<SectionFeaturedProjectsProps> = (
           )}
         </div>
       )}
+      {preview && <ResourcePreviewModal {...preview} onClose={() => setPreview(null)} />}
     </section>
   );
 };

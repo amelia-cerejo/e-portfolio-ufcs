@@ -31,7 +31,7 @@ export function normalizePortfolioData(data: PortfolioData): PortfolioData {
           id: p.id || `proj_${Math.random()}`,
           title: p.title || 'Trabalho',
           context: p.context || '',
-          ufcdId: p.ufcdId || normalizedUfcds[0]?.id || '',
+          ufcdId: p.ufcdId ?? normalizedUfcds[0]?.id ?? '',
           description: p.description || '',
           whatILearned: p.whatILearned || '',
           isGroupWork: Boolean(p.isGroupWork),

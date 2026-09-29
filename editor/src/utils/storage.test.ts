@@ -90,3 +90,22 @@ test('as opções PDF sobrevivem à gravação e ao carregamento', () => {
   assert.equal(loaded.pdfOptions?.orientation, 'landscape');
   assert.deepEqual(loaded.pdfOptions?.sections, ['sobre']);
 });
+
+test('a UFCD, o trabalho de grupo e a foto de perfil mantêm-se ao reabrir', () => {
+  const data = createBlankTemplate('training');
+  const secondUfcd = { ...data.ufcds[0], id: 'ufcd_0753', code: '0753', name: 'Sistemas operativos' };
+  const photo = 'data:image/png;base64,iVBORw0KGgo=';
+  const banner = 'data:image/png;base64,iVBORw0KGgo=';
+  savePortfolioData({
+    ...data,
+    theme: { ...data.theme, customBannerUrl: banner },
+    profile: { ...data.profile, studentPhoto: photo },
+    ufcds: [...data.ufcds, secondUfcd],
+    featuredProjects: [{ id: 'proj_1', title: 'Projeto final', context: '', ufcdId: secondUfcd.id, description: '', isGroupWork: true }],
+  });
+  const loaded = loadPortfolioData();
+  assert.equal(loaded.profile.studentPhoto, photo);
+  assert.equal(loaded.theme.customBannerUrl, banner);
+  assert.equal(loaded.featuredProjects[0].ufcdId, 'ufcd_0753');
+  assert.equal(loaded.featuredProjects[0].isGroupWork, true);
+});
