@@ -109,3 +109,18 @@ test('a UFCD, o trabalho de grupo e a foto de perfil mantêm-se ao reabrir', () 
   assert.equal(loaded.featuredProjects[0].ufcdId, 'ufcd_0753');
   assert.equal(loaded.featuredProjects[0].isGroupWork, true);
 });
+
+test('imagens de evidências e projetos acompanham o projeto e o site exportado', () => {
+  const data = createBlankTemplate('training');
+  const imageData = 'data:image/png;base64,iVBORw0KGgo=';
+  const ufcd = { ...data.ufcds[0], evidences: [{ id: 'ev_1', ufcdId: data.ufcds[0].id, title: 'Captura', type: 'image' as const, url: 'https://exemplo.pt/trabalho', embedUrl: 'https://onedrive.live.com/embed?resid=abc', imageData, description: '', date: '', isGroupWork: false }] };
+  savePortfolioData({ ...data, ufcds: [ufcd], featuredProjects: [{ id: 'proj_1', title: 'Projeto', context: '', ufcdId: ufcd.id, description: '', imageUrl: imageData, embedUrl: 'https://onedrive.live.com/embed?resid=projeto' }] });
+  const loaded = loadPortfolioData();
+  assert.equal(loaded.ufcds[0].evidences[0].imageData, imageData);
+  assert.equal(loaded.ufcds[0].evidences[0].embedUrl, 'https://onedrive.live.com/embed?resid=abc');
+  assert.equal(loaded.featuredProjects[0].imageUrl, imageData);
+  assert.equal(loaded.featuredProjects[0].embedUrl, 'https://onedrive.live.com/embed?resid=projeto');
+  const html = generateStandaloneHtml(loaded);
+  assert.match(html, /src="data:image\/png;base64,iVBORw0KGgo="/);
+  assert.match(html, /data-resource-url="https:\/\/exemplo.pt\/trabalho"/);
+});

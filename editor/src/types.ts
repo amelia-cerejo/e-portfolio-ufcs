@@ -58,6 +58,8 @@ export interface EvidenceItem {
   title: string;
   type: EvidenceType;
   url: string;
+  embedUrl?: string;
+  imageData?: string;
   description: string;
   date: string;
   isGroupWork: boolean;
@@ -90,6 +92,7 @@ export interface FeaturedProject {
   isGroupWork?: boolean; // Individual ou de grupo
   imageUrl?: string;
   linkUrl?: string;
+  embedUrl?: string;
 }
 
 export interface SkillEvolution {

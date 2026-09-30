@@ -45,6 +45,7 @@ export default function App() {
   // Modals state
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [currentUfcdForEvidence, setCurrentUfcdForEvidence] = useState<string>('');
+  const [editingEvidence, setEditingEvidence] = useState<EvidenceItem | null>(null);
   const [editingUfcd, setEditingUfcd] = useState<UFCD | null>(null);
   const [editingProject, setEditingProject] = useState<FeaturedProject | null>(null);
 
@@ -176,6 +177,16 @@ export default function App() {
 
   // Evidence handlers
   const handleSaveEvidence = (ufcdId: string, evidence: Omit<EvidenceItem, 'id'>) => {
+    if (editingEvidence) {
+      setData((prev) => ({
+        ...prev,
+        ufcds: prev.ufcds.map((u) => u.id === ufcdId
+          ? { ...u, evidences: u.evidences.map((item) => item.id === editingEvidence.id ? { ...item, ...evidence } : item) }
+          : u),
+      }));
+      setEditingEvidence(null);
+      return;
+    }
     const newEvidence: EvidenceItem = {
       ...evidence,
       id: `ev_${Date.now()}`,
@@ -248,6 +259,7 @@ export default function App() {
                 isGroupWork: isGroup,
                 imageUrl: values.imageUrl,
                 linkUrl: values.linkUrl,
+                embedUrl: values.embedUrl,
               }
             : p
         ),
@@ -264,6 +276,7 @@ export default function App() {
         isGroupWork: isGroup,
         imageUrl: values.imageUrl || '',
         linkUrl: values.linkUrl || '',
+        embedUrl: values.embedUrl || '',
       };
 
       setData((prev) => ({
@@ -431,6 +444,12 @@ export default function App() {
             }}
             onAddEvidence={(ufcdId) => {
               setCurrentUfcdForEvidence(ufcdId);
+              setEditingEvidence(null);
+              setActiveModal('add_evidence');
+            }}
+            onEditEvidence={(ufcdId, evidence) => {
+              setCurrentUfcdForEvidence(ufcdId);
+              setEditingEvidence(evidence);
               setActiveModal('add_evidence');
             }}
             onDeleteEvidence={handleDeleteEvidence}
@@ -606,6 +625,7 @@ export default function App() {
           isGroupWork: editingProject?.isGroupWork ? 'sim' : 'nao',
           imageUrl: editingProject?.imageUrl || '',
           linkUrl: editingProject?.linkUrl || '',
+          embedUrl: editingProject?.embedUrl || '',
         }}
         fields={[
           { key: 'title', label: 'Nome do Trabalho' },
@@ -614,8 +634,9 @@ export default function App() {
           { key: 'description', label: 'O que fiz (descrição)', type: 'textarea', rows: 3 },
           { key: 'whatILearned', label: 'O que aprendi', type: 'textarea', rows: 2 },
           { key: 'isGroupWork', label: 'Tipo de trabalho', type: 'select', options: [{ value: 'nao', label: 'Trabalho individual' }, { value: 'sim', label: 'Trabalho de grupo' }] },
-          { key: 'imageUrl', label: 'URL da Imagem de Pré-visualização (Opcional)' },
+          { key: 'imageUrl', label: 'Imagem de pré-visualização (opcional)', type: 'image' },
           { key: 'linkUrl', label: 'Ligação para o Trabalho / Drive / GitHub (Opcional)' },
+          { key: 'embedUrl', label: 'Ligação de incorporação do trabalho (opcional)' },
         ]}
         onSave={handleSaveProject}
       />
@@ -665,6 +686,7 @@ export default function App() {
       {/* Evidence Modal */}
       <EvidenceModal
         ufcdId={currentUfcdForEvidence}
+        evidence={editingEvidence}
         isOpen={activeModal === 'add_evidence'}
         onClose={() => setActiveModal(null)}
         onSave={handleSaveEvidence}

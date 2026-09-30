@@ -84,13 +84,13 @@ export const EditModal: React.FC<EditModalProps> = ({
 
               {field.type === 'image' ? (
                 <div className="space-y-2">
-                  {formData[field.key] && <img src={formData[field.key]} alt="Pré-visualização da foto de perfil" className="h-24 w-24 rounded-md object-cover" />}
-                  <label className="block text-slate-600 dark:text-slate-300">URL da foto de perfil
+                  {formData[field.key] && <img src={formData[field.key]} alt={`Pré-visualização: ${field.label}`} className="h-24 w-24 rounded-md object-cover" />}
+                  <label className="block text-slate-600 dark:text-slate-300">URL da imagem
                     <input type="url" value={String(formData[field.key] || '').startsWith('data:') ? '' : formData[field.key] || ''} onChange={(e) => handleChange(field.key, e.target.value)} placeholder="https://exemplo.pt/foto.jpg" className="mt-1 block w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs" />
                   </label>
                   <span className="block text-slate-500">ou escolhe uma imagem do computador</span>
                   <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => { handleImage(field.key, e.target.files?.[0]); e.target.value = ''; }} className="block w-full text-xs" />
-                  {formData[field.key] && <button type="button" onClick={() => handleChange(field.key, '')} className="text-indigo-600 underline">Remover fotografia</button>}
+                  {formData[field.key] && <button type="button" onClick={() => handleChange(field.key, '')} className="text-indigo-600 underline">Remover imagem</button>}
                   <p className="text-slate-500">O ficheiro escolhido fica guardado no projeto (JPG, PNG ou WebP até 2 MB). Uma foto por URL continua a depender dessa ligação.</p>
                 </div>
               ) : field.type === 'select' ? (

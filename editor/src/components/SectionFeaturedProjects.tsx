@@ -20,7 +20,7 @@ export const SectionFeaturedProjects: React.FC<SectionFeaturedProjectsProps> = (
   onDeleteProject,
 }) => {
   const palette = themePalettes[data.theme.themeColor] || themePalettes.indigo;
-  const [preview, setPreview] = useState<{ url: string; title: string } | null>(null);
+  const [preview, setPreview] = useState<{ url: string; title: string; embedUrl?: string } | null>(null);
 
   return (
     <section id="trabalhos" className="scroll-mt-24 space-y-6">
@@ -137,11 +137,11 @@ export const SectionFeaturedProjects: React.FC<SectionFeaturedProjectsProps> = (
                 </div>
 
                 {/* Footer Link Button */}
-                {project.linkUrl && isSafeResource(project.linkUrl) && (
+                {(project.linkUrl && isSafeResource(project.linkUrl) || project.embedUrl && isSafeResource(project.embedUrl)) && (
                   <div className="p-4 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
                     <span className="text-slate-400 font-medium">Ver trabalho completo</span>
                     <button type="button"
-                      onClick={() => setPreview({ url: project.linkUrl, title: project.title })}
+                      onClick={() => setPreview({ url: project.linkUrl || project.embedUrl || '', title: project.title, embedUrl: project.embedUrl })}
                       className={`font-semibold ${palette.primaryText} hover:underline flex items-center gap-1`}
                     >
                       <span>Aceder à Ligação</span>

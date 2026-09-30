@@ -37,6 +37,7 @@ export function normalizePortfolioData(data: PortfolioData): PortfolioData {
           isGroupWork: Boolean(p.isGroupWork),
           imageUrl: p.imageUrl || '',
           linkUrl: p.linkUrl || '',
+          embedUrl: p.embedUrl || '',
         };
         return cleanProj;
       })

@@ -7,7 +7,7 @@ const escape = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, (char
 }[character] || character));
 
 const paragraph = (value: unknown) => value ? `<p>${escape(value)}</p>` : '';
-const safeLink = (url: string, title: string) => /^https?:\/\//i.test(url) ? `<button type="button" class="resource-open" data-resource-url="${escape(url)}" data-resource-title="${escape(title)}">Abrir no site</button>` : '';
+const safeLink = (url: string, title: string, embedUrl = '') => /^https?:\/\//i.test(url) || /^https:\/\//i.test(embedUrl) ? `<button type="button" class="resource-open" data-resource-url="${escape(/^https?:\/\//i.test(url) ? url : '')}" data-resource-embed="${escape(/^https:\/\//i.test(embedUrl) ? embedUrl : '')}" data-resource-title="${escape(title)}">Abrir no site</button>` : '';
 const imageHtml = (url: string | undefined, alt: string) => url && /^(https?:\/\/|data:image\/(png|jpeg|webp|gif);base64,)/i.test(url) ? `<img src="${escape(url)}" alt="${escape(alt)}" style="max-width:100%;max-height:320px;object-fit:contain">` : '';
 
 export function generateConfigurableHtml(data: PortfolioData, options: PublicExportOptions, selectedSections = visibleSections(data)): string {
@@ -43,8 +43,8 @@ export function generateConfigurableHtml(data: PortfolioData, options: PublicExp
       ${options.includeDifficulties !== false ? `<h3>Dificuldades e estratégias</h3>${paragraph(ufcd.difficultiesFaced)}${paragraph(ufcd.howIOvercame)}` : ''}
       <h3>Competências desenvolvidas</h3>${paragraph(ufcd.skillsDeveloped)}
       ${options.includeReflections !== false ? `<h3>Reflexão</h3>${paragraph(ufcd.finalReflection)}` : ''}
-      ${ufcd.evidences.length ? `<h3>Evidências</h3><ul>${ufcd.evidences.map((evidence) => `<li><strong>${escape(evidence.title)}</strong> ${escape(evidence.description)} ${options.includeImages !== false && evidence.type === 'image' && /\.(?:png|jpe?g|webp|gif)(?:[?#]|$)|^data:image\//i.test(evidence.url) ? imageHtml(evidence.url, evidence.title) : ''} ${safeLink(evidence.url, evidence.title)}</li>`).join('')}</ul>` : ''}</section>`).join(''),
-    trabalhos: () => `<section><h2>Trabalhos e projetos</h2>${data.featuredProjects.map((project) => `<article><h3>${escape(project.title)}</h3>${options.includeImages !== false && project.imageUrl ? `<img src="${escape(project.imageUrl)}" alt="${escape(project.title)}">` : ''}${paragraph(project.context)}${paragraph(project.description)}${options.includeReflections !== false ? paragraph(project.whatILearned) : ''}${project.linkUrl ? safeLink(project.linkUrl, project.title) : ''}</article>`).join('')}</section>`,
+      ${ufcd.evidences.length ? `<h3>Evidências</h3><ul>${ufcd.evidences.map((evidence) => `<li><strong>${escape(evidence.title)}</strong> ${escape(evidence.description)} ${options.includeImages !== false && evidence.type === 'image' && (evidence.imageData || /\.(?:png|jpe?g|webp|gif)(?:[?#]|$)|^data:image\//i.test(evidence.url)) ? imageHtml(evidence.imageData || evidence.url, evidence.title) : ''} ${safeLink(evidence.url, evidence.title, evidence.embedUrl)}</li>`).join('')}</ul>` : ''}</section>`).join(''),
+    trabalhos: () => `<section><h2>Trabalhos e projetos</h2>${data.featuredProjects.map((project) => `<article><h3>${escape(project.title)}</h3>${options.includeImages !== false && project.imageUrl ? `<img src="${escape(project.imageUrl)}" alt="${escape(project.title)}">` : ''}${paragraph(project.context)}${paragraph(project.description)}${options.includeReflections !== false ? paragraph(project.whatILearned) : ''}${project.linkUrl || project.embedUrl ? safeLink(project.linkUrl || '', project.title, project.embedUrl) : ''}</article>`).join('')}</section>`,
     evolucao: () => `<section><h2>Evolução das competências</h2>${data.skillEvolutions.map((skill) => `<article><h3>${escape(skill.category)}</h3><p>${skill.initialLevel} → ${skill.finalLevel}</p>${paragraph(skill.notes)}</article>`).join('')}</section>`,
     'reflexao-final': () => options.includeReflections === false ? '' : `<section><h2>Reflexão final</h2>${paragraph(data.finalReflection.overallReflection)}${[
       ['O que aprendi', data.finalReflection.qWhatILearned], ['Em que área evoluí mais', data.finalReflection.qMostEvolvedArea],
@@ -64,17 +64,29 @@ export function generateConfigurableHtml(data: PortfolioData, options: PublicExp
       const body = document.getElementById('resource-body');
       document.querySelectorAll('.resource-open').forEach(button => button.addEventListener('click', () => {
         const url = button.dataset.resourceUrl;
-        if (!url || !(url.startsWith('https://') || url.startsWith('http://'))) return;
+        const embed = button.dataset.resourceEmbed;
+        const safeUrl = url && (url.startsWith('https://') || url.startsWith('http://'));
+        const safeEmbed = embed && embed.startsWith('https://');
+        if (!safeUrl && !safeEmbed) return;
         const title = button.dataset.resourceTitle || 'Trabalho';
-        const path = url.split('?')[0].split('#')[0].toLowerCase();
+        const path = (url || '').split('?')[0].split('#')[0].toLowerCase();
         const isImage = ['.png', '.jpg', '.jpeg', '.webp', '.gif'].some(ext => path.endsWith(ext));
-        const viewer = document.createElement(isImage ? 'img' : 'iframe');
-        viewer.title = title;
-        if (isImage) { viewer.src = url; viewer.alt = title; }
-        else { viewer.src = url; viewer.referrerPolicy = 'no-referrer'; }
-        body.replaceChildren(viewer);
+        const isOffice = ['.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'].some(ext => path.endsWith(ext));
+        if (isOffice && !safeEmbed) {
+          const notice = document.createElement('p');
+          notice.textContent = 'Este ficheiro Office precisa de uma ligação de incorporação para ser visto nesta janela. Abre a ligação diretamente ou acrescenta a incorporação ao editar o trabalho.';
+          notice.style.padding = '24px';
+          body.replaceChildren(notice);
+        } else {
+          const viewer = document.createElement(isImage ? 'img' : 'iframe');
+          viewer.title = title;
+          viewer.src = safeEmbed ? embed : url;
+          if (isImage) viewer.alt = title;
+          else viewer.referrerPolicy = 'no-referrer';
+          body.replaceChildren(viewer);
+        }
         document.getElementById('resource-title').textContent = title;
-        document.getElementById('resource-external').href = url;
+        document.getElementById('resource-external').href = safeUrl ? url : embed;
         dialog.showModal();
       }));
       document.getElementById('resource-close').addEventListener('click', () => dialog.close());

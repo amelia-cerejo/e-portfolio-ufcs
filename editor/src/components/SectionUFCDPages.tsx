@@ -35,6 +35,7 @@ interface SectionUFCDPagesProps {
   isEditMode: boolean;
   onEditUfcd: (ufcd: UFCD) => void;
   onAddEvidence: (ufcdId: string) => void;
+  onEditEvidence: (ufcdId: string, evidence: EvidenceItem) => void;
   onDeleteEvidence: (ufcdId: string, evidenceId: string) => void;
 }
 
@@ -45,11 +46,12 @@ export const SectionUFCDPages: React.FC<SectionUFCDPagesProps> = ({
   isEditMode,
   onEditUfcd,
   onAddEvidence,
+  onEditEvidence,
   onDeleteEvidence,
 }) => {
   const palette = themePalettes[data.theme.themeColor] || themePalettes.indigo;
   const [activeTab, setActiveTab] = useState<string>(selectedUfcdId || data.ufcds[0]?.id || '');
-  const [preview, setPreview] = useState<{ url: string; title: string } | null>(null);
+  const [preview, setPreview] = useState<{ url: string; title: string; externalUrl?: string; embedUrl?: string } | null>(null);
 
   // Sync state if parent selectedUfcdId changes
   React.useEffect(() => {
@@ -339,24 +341,24 @@ export const SectionUFCDPages: React.FC<SectionUFCDPagesProps> = ({
                         )}
 
                         {isEditMode && (
-                          <button
+                          <><button type="button" onClick={() => onEditEvidence(currentUfcd.id, evidence)} className="p-1 rounded text-indigo-600 hover:bg-indigo-50" title="Editar evidência" aria-label={`Editar ${evidence.title}`}><Edit2 className="w-3.5 h-3.5" /></button><button
                             onClick={() => onDeleteEvidence(currentUfcd.id, evidence.id)}
                             className="p-1 rounded text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition"
                             title="Eliminar evidência"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          </button></>
                         )}
                       </div>
                     </div>
 
                     {/* Image Preview if image */}
-                    {evidence.type === 'image' && evidence.url && isPreviewableImage(evidence.url) && (
+                    {evidence.type === 'image' && (evidence.imageData || (evidence.url && isPreviewableImage(evidence.url))) && (
                       <div
-                        onClick={() => setPreview({ url: evidence.url, title: evidence.title })}
+                        onClick={() => setPreview({ url: evidence.imageData || evidence.url, title: evidence.title, externalUrl: evidence.url, embedUrl: evidence.embedUrl })}
                         className="relative h-36 w-full rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-900 cursor-pointer group-hover:opacity-95 transition"
                       >
-                        <img src={evidence.url} alt={evidence.title} className="w-full h-full object-cover" />
+                        <img src={evidence.imageData || evidence.url} alt={evidence.title} className="w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-slate-900/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white">
                           <Maximize2 className="w-5 h-5" />
                         </div>
@@ -375,9 +377,9 @@ export const SectionUFCDPages: React.FC<SectionUFCDPagesProps> = ({
                   <div className="pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-xs text-slate-400">
                     <span>{evidence.date}</span>
 
-                    {evidence.url && isSafeResource(evidence.url) && (
+                    {(evidence.imageData || (evidence.url && isSafeResource(evidence.url)) || (evidence.embedUrl && isSafeResource(evidence.embedUrl))) && (
                       <button type="button"
-                        onClick={() => setPreview({ url: evidence.url, title: evidence.title })}
+                        onClick={() => setPreview({ url: evidence.imageData || evidence.url || evidence.embedUrl || '', title: evidence.title, externalUrl: evidence.url, embedUrl: evidence.embedUrl })}
                         className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
                       >
                         <span>Abrir Evidência</span>
