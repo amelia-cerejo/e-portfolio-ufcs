@@ -108,6 +108,7 @@ th { color: var(--action-primary); background: var(--action-primary-soft); }
 .center-action { margin-top: 26px; text-align: center; }
 .privacy-layout { display: grid; grid-template-columns: .9fr 1.1fr; gap: 42px; align-items: start; }
 .section-lead { max-width: 500px; color: var(--muted); font-size: 18px; line-height: 1.65; }
+.delivery-title { margin: 0 0 18px; color: var(--action-ink); font-size: clamp(30px, 4vw, 48px); line-height: 1.08; }
 .privacy-card { overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: #fff; box-shadow: var(--shadow); }
 .privacy-card > div { padding: 22px 24px; border-bottom: 1px solid var(--line); }
 .privacy-card strong { display: block; margin-bottom: 7px; color: var(--action-ink); }
